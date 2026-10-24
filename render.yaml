@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: exam-miniapp
+    runtime: python
+    plan: starter            # SQLite на постоянном диске: диск есть только на платных планах
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DB_PATH
+        value: /var/data/app.db
+      - key: SETTINGS_PATH
+        value: /var/data/settings.json
+      - key: BOT_TOKEN
+        sync: false          # вставить в панели Render
+      - key: BOT_USERNAME
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1

@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Тренажёр ЦТ и ЦЭ</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:var(--tg-theme-bg-color,#f5f7f4);--tx:var(--tg-theme-text-color,#19231f);--hint:var(--tg-theme-hint-color,#68756d);--card:var(--tg-theme-secondary-bg-color,#e9eeea);--ac:var(--tg-theme-button-color,#246c5d);--act:var(--tg-theme-button-text-color,#fff);--ok:#167a55;--bad:#bf4e42;--gold:#cb9018;--line:color-mix(in srgb,var(--hint) 18%,transparent);color-scheme:light}
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{--bg:#111815;--tx:#e8eee9;--hint:#a2b0a8;--card:#1d2822;--ac:#81c9ad;--act:#102019;--ok:#75d5a2;--bad:#ff887b;--gold:#f0be5a;--line:color-mix(in srgb,var(--hint) 22%,transparent);color-scheme:dark}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg);scroll-behavior:smooth}
+body{min-height:100vh;margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Onest,system-ui,sans-serif;padding:0 18px calc(88px + env(safe-area-inset-bottom));transition:background-color .24s,color .24s}
+#hud{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);display:flex;align-items:center;gap:12px;padding:10px 0;font-weight:600;transition:background-color .24s}
+#stats{display:flex;justify-content:space-between;align-items:center;gap:12px;flex:1;min-width:0}
+.theme-toggle{width:38px;height:38px;flex:none;border:1px solid color-mix(in srgb,var(--hint) 35%,transparent);border-radius:50%;background:var(--card);color:var(--tx);font:inherit;font-size:18px;cursor:pointer;transition:transform .2s,background-color .2s}
+h3{margin:22px 0 12px;font-size:18px;line-height:1.25}
+#v{width:min(100%,720px);margin:0 auto}
+.card{display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px;margin:0 0 10px;color:inherit;font:inherit;text-align:left;transition:background-color .2s,border-color .2s,transform .18s}
+.subject-card{padding:16px}
+.subject-card .bar{height:4px;margin:8px 0 0}
+.subject-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:3px}
+.subject-heading>span{color:var(--ac);font-size:19px;transition:transform .2s}
+.topic-copy{min-width:0;text-align:left}
+.sub{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer}.sub .hint{text-align:right}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two .opt{margin:0;text-align:center}
+.opt.cut{opacity:.35;text-decoration:line-through}.tm{font-weight:800;font-variant-numeric:tabular-nums}
+.grid{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}.grid button{width:44px;height:44px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--card);color:inherit;font:inherit;font-size:13px;padding:0;transition:background-color .2s,border-color .2s,transform .16s}.grid .dn{border-color:var(--ac)}.grid .cu{background:var(--ac);color:var(--act)}
+.it{padding:10px 12px}.it .row{cursor:pointer}.it .bd{margin-top:8px;font-size:14px;white-space:pre-wrap}
+.ok-t{color:var(--ok)}.bad-t{color:var(--bad)}
+.hint{color:var(--hint);font-size:14px}
+.hero{display:flex;gap:14px;align-items:center;margin:8px 0 20px;padding:16px 0;border-bottom:1px solid var(--line)}
+.flame{font-size:60px;line-height:1}.big{font-size:46px;font-weight:800;line-height:1}
+.row{display:flex;justify-content:space-between}
+.bar{height:10px;background:var(--card);border-radius:5px;overflow:hidden;margin:8px 0 14px}
+.bar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.q{font-size:20px;margin:12px 0 18px}
+.opt,.main,input{display:block;width:100%;min-height:48px;padding:13px 14px;margin:0 0 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit;font:inherit;text-align:left;transition:transform .16s,border-color .18s,background-color .2s,color .2s,opacity .18s}
+.main{background:var(--ac);border-color:var(--ac);color:var(--act);text-align:center;font-weight:600}
+.opt.sel{border-color:var(--ac)}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--bg))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--bg))}
+.fb{padding:12px 14px;border-radius:12px;margin:4px 0 12px}
+.fb p{margin:6px 0 0}
+.fb.good{background:color-mix(in srgb,var(--ok) 16%,var(--bg))}
+.fb.wrong{background:color-mix(in srgb,var(--bad) 16%,var(--bg))}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;justify-content:center;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px max(8px,calc((100vw - 720px)/2)) calc(8px + env(safe-area-inset-bottom))}
+nav[hidden]{display:none}
+nav button{flex:1;max-width:180px;min-height:42px;background:none;border:0;border-radius:8px;color:var(--hint);font:inherit;padding:6px}
+#eb{color:var(--bad);margin-left:4px}.warn{background:color-mix(in srgb,var(--bad) 16%,var(--bg));border:2px solid var(--bad)}.lk{opacity:.75}
+nav button.on{color:var(--ac);font-weight:600;background:color-mix(in srgb,var(--ac) 11%,transparent)}
+.badges{display:grid;grid-template-columns:1fr 1fr;gap:10px}.badges .card{margin:0}.lock{opacity:.4}
+#v>p{line-height:1.55}
+.error-message{color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--bg));border-radius:8px;padding:12px 14px}
+.loading-state,.screen-error{min-height:42vh;display:grid;align-content:center;justify-items:center;text-align:center;gap:12px;padding:24px}
+.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}
+.screen-error{min-height:38vh}
+.save-state{font-size:12px;color:var(--hint);align-self:center;white-space:nowrap}
+.save-state.error{color:var(--bad)}
+.topic-summary{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin:0 0 10px}
+.topic-search{margin:8px 0 12px}
+.topic-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 14px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.topic-filter{min-height:44px;padding:6px 3px;border:0;border-radius:7px;background:transparent;color:var(--hint);font:inherit;font-size:12px;line-height:1.15;transition:background-color .18s,color .18s,transform .16s}
+.topic-filter.on{background:var(--bg);color:var(--tx);box-shadow:0 1px 4px color-mix(in srgb,var(--tx) 10%,transparent)}
+.topic-name{display:block;min-width:0;overflow-wrap:anywhere;font-weight:600}
+.topic-count{display:block;margin-top:3px;color:var(--hint);font-size:12px}
+.topic-progress{display:grid;justify-items:end;gap:5px;flex:none;text-align:right;font-size:13px}
+.topic-progress .bar{width:56px;height:5px;margin:0}
+.topic-empty{padding:24px 12px;text-align:center;border:1px dashed var(--line);border-radius:10px;color:var(--hint)}
+.topic-review{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.topic-review>div{min-width:0;overflow-wrap:anywhere}
+button:disabled{opacity:.58;cursor:wait}
+button:focus-visible,input:focus-visible{outline:3px solid color-mix(in srgb,var(--ac) 65%,transparent);outline-offset:2px}
+#v>*{animation:rise-in .32s cubic-bezier(.2,.75,.25,1) both}
+#v>:nth-child(2){animation-delay:.035s}#v>:nth-child(3){animation-delay:.07s}#v>:nth-child(4){animation-delay:.105s}
+#topic-list>*{animation:rise-in .25s cubic-bezier(.2,.75,.25,1) both}
+#topic-list>:nth-child(2){animation-delay:.025s}#topic-list>:nth-child(3){animation-delay:.05s}#topic-list>:nth-child(4){animation-delay:.075s}
+#opts>*{animation:rise-in .22s ease-out both}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(.98)}
+@media(hover:hover){.card:hover{border-color:color-mix(in srgb,var(--ac) 30%,var(--line));transform:translateY(-2px)}.opt:hover,.theme-toggle:hover{filter:brightness(1.06)}}
+@media(hover:hover){.subject-card:hover .subject-heading>span{transform:translateX(3px)}}
+@keyframes rise-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:420px){body{padding-left:14px;padding-right:14px}.hero{padding:12px 0}.big{font-size:40px}.q{font-size:18px}#stats{gap:8px;font-size:14px}.theme-toggle{width:36px;height:36px}.topic-filters{gap:3px;padding:3px}.topic-filter{font-size:11px}.topic-progress .bar{width:42px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style></head><body>
+<div id="hud"></div><main id="v"></main>
+<nav><button data-t="home" class="on">Учёба</button><button data-t="err">Ошибки<b id="eb"></b></button><button data-t="top">Топ</button><button data-t="sub">Подписка</button><button data-t="me">Профиль</button></nav>
+<script>
+const tg=Telegram.WebApp;tg.ready();tg.expand();
+const $=s=>document.querySelector(s),V=()=>$('#v');
+const NAMES={math:'Математика',rus:'Русский язык',phys:'Физика',chem:'Химия',bio:'Биология',hist:'История Беларуси'};
+const THEME_KEY='exam-miniapp-theme';
+let themeMode='auto';
+try{themeMode=localStorage.getItem(THEME_KEY)||'auto'}catch{}
+function applyTheme(){
+  const dark=themeMode==='dark'||(themeMode==='auto'&&tg.colorScheme==='dark');
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  const button=$('#theme-toggle');
+  if(button){button.textContent=dark?'☀':'☾';button.title=themeMode==='auto'?'Тема Telegram: нажмите, чтобы сменить':'Переключить тему';button.setAttribute('aria-label',button.title)}
+}
+function toggleTheme(){
+  themeMode=themeMode==='dark'?'light':'dark';
+  try{localStorage.setItem(THEME_KEY,themeMode)}catch{}
+  applyTheme();
+}
+tg.onEvent('themeChanged',()=>{if(themeMode==='auto')applyTheme()});
+applyTheme();
+let U={},S;
+async function api(p,body){
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+  let r,d;try{
+    r=await fetch('/api/'+p,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Init-Data':tg.initData},body:body?JSON.stringify(body):undefined,signal:controller.signal});
+    d=await r.json().catch(()=>({}))
+  }
+  catch(e){throw new Error(e.name==='AbortError'?'Сервер не ответил за 20 секунд. Проверьте мобильный интернет и повторите попытку.':'Нет связи с сервером. Проверьте интернет и повторите попытку.')}
+  finally{clearTimeout(timeout)}
+  if(r.status==402){viewPay();throw Object.assign(new Error('paywall'),{paywall:true})}
+  if(!r.ok)throw Object.assign(new Error(d.detail||'Ошибка сервера'),{status:r.status});return d}
+const fail=e=>e.paywall||tg.showAlert(e.message);
+const bar=(a,b)=>`<div class="bar"><i style="width:${b?Math.min(100,a/b*100):0}%"></i></div>`;
+const counted=(n,one,few,many)=>`${n} ${n%100>=11&&n%100<=14?many:n%10===1?one:n%10>=2&&n%10<=4?few:many}`;
+const taskCount=n=>counted(n,'задание','задания','заданий');
+const topicCount=n=>counted(n,'тема','темы','тем');
+const days=n=>n%10==1&&n%100!=11?'день':([2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'дня':'дней');
+const math=()=>window.renderMathInElement&&renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let timer;const stopTimer=()=>{clearInterval(timer);timer=null};
+function head(s){U={...U,...s};if($('#eb')){const reviewCount=(U.open_errors||0)+(U.reinforcement_due||0);$('#eb').textContent=reviewCount?`(${reviewCount})`:''}$('#hud').innerHTML=`<div id="stats">${U.hearts_enabled?`<span>❤️ ${U.hearts}</span>`:''}<span>🪙 ${U.coins}</span><span>⚡ ${U.xp} XP</span></div><button class="theme-toggle" id="theme-toggle" type="button" title="Переключить тему" aria-label="Переключить тему">☾</button>`;$('#theme-toggle').onclick=toggleTheme;applyTheme()}
+function mk(tag,cls,txt,fn){const e=document.createElement(tag);e.className=cls;if(txt!=null)e.textContent=txt;if(fn)e.onclick=fn;return e}
+function fmt(t,v){if(v==null||v===''||(Array.isArray(v)&&!v.length))return '—';return t=='choice'?String(v):[].concat(v).join(t=='nums'||t=='multi'?', ':'')}
+
+async function viewHome(){
+  stopTimer();const [profile,dc]=await Promise.all([api('me'),api('daily')]);head(profile);const A=U.access;
+  const note=A.state=='expired'?`Бесплатная версия: сегодня осталось ${A.daily_left} из ${A.daily_limit||'∞'} заданий`:A.state=='trial'?`Пробный период: осталось ${A.days_left} ${days(A.days_left)}`:A.state=='paid'&&A.days_left?`Доступ оплачен: ещё ${A.days_left} ${days(A.days_left)}`:'';
+  const reviewTotal=U.open_errors+(U.reinforcement_due||0);
+  V().innerHTML=`<div class="hero"><div class="flame">${U.streak?'🔥':'🕯️'}</div><div><span class="big">${U.streak}</span> ${days(U.streak)} подряд<br><span class="hint">Щитов серии: ${U.shields}</span></div></div>
+  ${U.needs_diag?`<button class="card warn" id="diag-start"><b>🧭 Быстрый старт: общий тест</b><div class="hint">До 10 вопросов покажут, какие темы стоит повторить в первую очередь.</div></button>`:''}
+  <div class="card"><div class="row"><b>Цель дня</b><span>${U.today_xp} / ${U.goal} XP</span></div>${bar(U.today_xp,U.goal)}${note?`<span class="hint">${note}</span>`:''}</div><div class="card"><b id="dt"></b><p class="hint" id="dx"></p></div>${reviewTotal?`<button class="card warn" id="errb"><b>Повторение: ${reviewTotal} ${taskCount(reviewTotal)}</b><div class="hint">${U.open_errors?`${U.open_errors} ещё нужно проработать. `:''}${U.reinforcement_due?`${U.reinforcement_due} вернулись для закрепления. `:''}${U.due?`${U.due} пора повторить сегодня. `:''}Короткий тест по 10 заданий</div></button>`:''}<h3>Предметы</h3>`+
+  (U.subjects.map(x=>`<button class="card subject-card" data-s="${esc(x.subject)}"><span class="subject-heading"><b>${esc(NAMES[x.subject]||x.subject)}</b><span aria-hidden="true">→</span></span><div class="hint">${taskCount(x.n)} · ${topicCount(x.topics)} · ${x.diagnostic_done?'ориентир ~'+x.level+'/100':'оценка ещё не определена · пройти тест'}</div>${x.diagnostic_done?bar(x.level,100):''}</button>`).join('')||'<p class="hint">Заданий пока нет. Добавьте JSON-файл в папку tasks и перезапустите сервер.</p>');
+  V().querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>viewTopics(b.dataset.s));
+  if($('#diag-start'))$('#diag-start').onclick=()=>start('', 'diag');
+  $('#dt').textContent='📌 '+dc.title;$('#dx').textContent=dc.text;
+  if($('#errb'))$('#errb').onclick=()=>viewErrors()}
+
+async function viewTopics(sub){
+  V().innerHTML='<section class="loading-state" role="status"><span class="spinner"></span><span class="hint">Загружаю темы…</span></section>';
+  let d,sb;
+  try{[d,sb]=await Promise.all([api('topics?subject='+encodeURIComponent(sub)),api('sborniki?subject='+encodeURIComponent(sub))])}
+  catch{return showScreenError(()=>viewTopics(sub))}
+  const ST={new:'Не начата',learning:'В процессе',mastered:'Освоена'};
+  const subjectState=U.subjects.find(item=>item.subject===sub);
+  V().innerHTML=`<button class="opt" id="bk">← Назад</button><h3>${esc(NAMES[sub]||sub)}</h3>${subjectState?.diagnostic_done?`<div class="card"><b>Ориентировочный балл: ~${subjectState.level}/100</b><div class="hint">Это внутренняя оценка по вашим ответам, не официальный прогноз результата экзамена.</div>${bar(subjectState.level,100)}</div>`:`<button class="card warn" id="subject-diag"><b>Определить стартовый уровень</b><div class="hint">Короткий тест до 10 заданий по разным темам этого предмета. Результат сохранится отдельно.</div></button>`}<div class="topic-summary"><span class="hint">${topicCount(d.topics.length)} для занятий</span><span class="hint">${taskCount(d.topics.reduce((sum,t)=>sum+t.n,0))}</span></div><input class="topic-search" id="topic-search" type="search" placeholder="Найти тему" aria-label="Найти тему"><div class="topic-filters" role="group" aria-label="Фильтр тем"><button class="topic-filter on" data-filter="all">Все</button><button class="topic-filter" data-filter="new">Новые</button><button class="topic-filter" data-filter="learning">В процессе</button><button class="topic-filter" data-filter="mastered">Освоены</button></div>${sb.years.length?`<button class="main${sb.locked?' lk':''}" id="sb">${sb.locked?'🔒 ':'📚 '}Варианты прошлых лет</button>`:''}<button class="opt" id="all">Тренировка по всем темам</button>${subjectState?.diagnostic_done?'<button class="opt" id="diag">Пройти тест ещё раз</button>':''}<div id="topic-list"></div>`;
+  let filter='all';
+  const renderTopics=()=>{
+    const query=$('#topic-search').value.trim().toLocaleLowerCase('ru');
+    const matches=d.topics.map((topic,index)=>({topic,index})).filter(({topic})=>(filter==='all'||topic.status===filter)&&topic.topic.toLocaleLowerCase('ru').includes(query));
+    $('#topic-list').innerHTML=matches.length?matches.map(({topic:t,index:i})=>`<button class="card sub" data-i="${i}"><span class="topic-copy"><span class="topic-name">${esc(t.topic)}</span><span class="topic-count">${taskCount(t.n)} · ${ST[t.status]}${t.acc!==null?' · точность '+t.acc+'%':''}</span></span><span class="topic-progress"><span>${t.att?`${t.att} решено`:'Начать'}</span>${t.att?bar(t.acc,100):''}</span></button>`).join(''):'<div class="topic-empty">Темы не найдены. Измените поиск или фильтр.</div>';
+    $('#topic-list').querySelectorAll('[data-i]').forEach(button=>button.onclick=()=>start(sub,'',d.topics[Number(button.dataset.i)].topic));
+  };
+  renderTopics();
+  $('#topic-search').oninput=renderTopics;
+  V().querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{
+    filter=button.dataset.filter;
+    V().querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('on',item===button));
+    renderTopics();
+  });
+  $('#bk').onclick=viewHome;$('#all').onclick=()=>start(sub);if($('#diag'))$('#diag').onclick=()=>startSubjectDiagnostic(sub);if($('#subject-diag'))$('#subject-diag').onclick=()=>startSubjectDiagnostic(sub);if($('#sb'))$('#sb').onclick=()=>sb.locked?viewPay():viewSb(sub);
+}
+
+async function viewSb(sub){
+  V().innerHTML='<section class="loading-state" role="status"><span class="spinner"></span><span class="hint">Загружаю варианты…</span></section>';
+  let d;try{d=await api('sborniki?subject='+encodeURIComponent(sub))}catch{return showScreenError(()=>viewSb(sub))}
+  V().innerHTML=`<button class="opt" id="bk">← Назад</button><h3>Варианты прошлых лет</h3>`+d.years.map(y=>`<h3>${y.year}</h3>`+y.variants.map(v=>{const e=v.exam;return `<div class="card"><div class="row"><b>Вариант ${v.variant}</b><span class="hint">решено ${v.solved} из ${v.total}</span></div>${bar(v.solved,v.total)}${e.best!=null?`<p class="hint">Лучший результат на экзамене: ~${e.best} баллов</p>`:''}<div class="two"><button class="opt" data-a="tr" data-y="${y.year}" data-v="${v.variant}">Тренировка</button><button class="opt" data-a="ex" data-y="${y.year}" data-v="${v.variant}">${e.state=='going'?'Продолжить экзамен':'Экзамен'}</button></div>${e.state=='done'?`<button class="opt" data-a="res" data-id="${e.id}" style="margin-top:10px">Разбор последнего экзамена</button>`:''}</div>`}).join('')).join('');
+  $('#bk').onclick=()=>viewTopics(sub);
+  V().querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;a=='ex'&&d.exam_locked?viewPay():a=='tr'?start(sub,'variant','',{year:b.dataset.y,variant:b.dataset.v,todo:1,back:()=>viewSb(sub)}):a=='ex'?startExam(+b.dataset.y,+b.dataset.v,sub):openRes(b.dataset.id,sub)})}
+
+async function start(sub,mode='',topic='',x={}){
+  const q=new URLSearchParams({subject:sub,mode,topic,...(x.year?{year:x.year,variant:x.variant,todo:x.todo||0}:{}),...(x.exam_id?{exam_id:x.exam_id}:{})});
+  try{S={t:(await api('session?'+q)).tasks,i:0,ok:0,back:x.back,mode,loop:['errors','errors_all','exam_errors'].includes(mode),rq:{},results:[]}}catch(e){return fail(e)}
+  S.t.length?ask():tg.showAlert(mode.includes('errors')?'Ошибок нет, отлично!':'Заданий пока нет')}
+
+async function startSubjectDiagnostic(subject){
+  let d;try{d=await api('diagnostic/start',{subject})}catch(e){return fail(e)}
+  S={t:d.tasks,i:0,ok:0,back:()=>viewTopics(subject),mode:'subject_diag',loop:false,rq:{},results:[],diagnosticId:d.diagnostic_id,subject};
+  S.t.length?ask():tg.showAlert('Для этого предмета пока нет проверенных заданий')
+}
+
+function qBlock(t){
+  V().insertAdjacentHTML('beforeend','<div class="card" id="ps" style="white-space:pre-wrap"></div><p class="q" id="qt"></p><div id="opts"></div>');
+  $('#qt').textContent=(t.num?t.num+'. ':'')+t.question;$('#ps').textContent=(t.passage||'').replace(/\*\*/g,'');$('#ps').hidden=!t.passage}
+function optsFor(t,onPick,onToggle){  // кнопки вариантов; возвращает функцию «текущий ответ»
+  const o=$('#opts');
+  if(t.type=='choice'){t.options.forEach((x,j)=>o.append(mk('button','opt',x,e=>onPick(j,e.target))));return null}
+  if(t.type=='multi'){t.options.forEach(x=>o.append(mk('button','opt',x,e=>{e.target.classList.toggle('sel');onToggle&&onToggle()})));return()=>[...o.querySelectorAll('.opt')].flatMap((b,j)=>b.classList.contains('sel')?[j+1]:[])}
+  const i=document.createElement('input');i.id='num';i.placeholder='Ваш ответ';i.autocomplete='off';o.append(i);return()=>i.value}
+
+function ask(){
+  const t=S.t[S.i];S.lv=0;S.rev=false;
+  V().innerHTML=bar(S.i,S.t.length);
+  qBlock(t);
+  const get=optsFor(t,(j,b)=>send(j,b));
+  if(get)$('#opts').append(mk('button','main','Проверить',()=>send(get())));
+  if(t.hints>0)V().insertAdjacentHTML('beforeend','<div id="hs"></div><button class="opt" id="hb"></button>'),hintBtn(t);
+  V().insertAdjacentHTML('beforeend','<div id="fb"></div>');math()}
+function hintBtn(t){
+  const b=$('#hb');if(!b)return;
+  if(S.lv>=t.hints){b.remove();return}
+  b.textContent=`💡 Подсказка ${S.lv+1} из ${t.hints}`+(U.cfg.hint_cost_coins?` (${U.cfg.hint_cost_coins} 🪙)`:'');
+  b.onclick=async()=>{
+    const go=async()=>{try{const h=await api(`hint?task_id=${encodeURIComponent(t.id)}&level=${S.lv+1}`);S.lv++;head(h);
+      const c=mk('div','card');c.append(mk('b','',h.title));
+      if(h.kind=='explain'){S.rev=true;h.lines.forEach(l=>c.append(mk('p','',l)))}else c.append(mk('p','',h.text));
+      if(h.cross)h.cross.forEach(j=>document.querySelectorAll('#opts .opt')[j]?.classList.add('cut'));
+      $('#hs').append(c);hintBtn(t);math()}catch(e){fail(e)}};
+    const isLast=S.lv+1==t.hints;
+    isLast&&U.cfg.reveal_counts_as_miss?tg.showConfirm('Разбор покажет ответ. Это задание не засчитается и вернётся в повторение. Открыть?',ok=>ok&&go()):go()}}
+
+async function send(a,btn){
+  const t=S.t[S.i];
+  document.querySelectorAll('#opts button,#opts input,#hb').forEach(x=>x.disabled=true);
+  let r;try{r=await api('answer',{task_id:t.id,answer:a,revealed:S.rev})}catch(e){
+    if(!e.paywall){document.querySelectorAll('#opts button,#opts input,#hb').forEach(x=>x.disabled=false);$('#fb').replaceChildren(mk('p','error-message','Не удалось отправить ответ. Проверьте соединение и попробуйте ещё раз.'));}
+    return
+  }
+  head(r);S.ok+=r.correct&&!r.helped;tg.HapticFeedback?.notificationOccurred(r.correct?'success':'error');
+  if(S.mode==='diag')S.results.push({subject:t.subject,topic:t.topic,correct:r.correct&&!r.helped});
+  document.querySelectorAll('#opts .main,#hb').forEach(x=>x.remove());
+  if(t.type=='choice'){document.querySelectorAll('.opt')[r.right]?.classList.add('ok');if(!r.correct)btn.classList.add('bad')}
+  if(t.type=='multi')document.querySelectorAll('#opts .opt').forEach((b,j)=>{const g=r.right.includes(j+1);b.classList.toggle('ok',g);if(b.classList.contains('sel')&&!g)b.classList.add('bad')});
+  const redo=S.loop&&(!r.correct||r.helped)&&(S.rq[t.id]=(S.rq[t.id]||0)+1)<=5;if(redo)S.t.push(t);  // ошибки в разборе ошибок повторяем, пока не решит верно
+  const last=S.i+1>=S.t.length||(U.hearts_enabled&&U.hearts<=0);
+  const title=r.helped?'Верно, но разбор был открыт: задание вернётся в повторение':r.correct?'Верно! +'+r.xp_earned+' XP':'Неверно. Правильный ответ: <span id="ra"></span>';
+  $('#fb').innerHTML=`<div class="fb ${r.correct&&!r.helped?'good':'wrong'}"><b>${title}</b><div id="ex"></div>${redo?'<p><b>🔁 Вернёмся к этому заданию ещё раз.</b></p>':''}</div><button class="opt" id="rp" style="font-size:13px">⚠️ Ошибка в задании?</button>${r.badges.length?`<p>🏅 Новая награда: ${r.badges.join(', ')}</p>`:''}<button class="main" id="next">${last?'Завершить':'Дальше'}</button>`;
+  if($('#ra'))$('#ra').textContent=t.type=='choice'?t.options[r.right]:[].concat(r.right).join(t.type=='match'||t.type=='text'?'':', ');
+  if(r.trap){const p=document.createElement('p');p.textContent='⚠️ Ловушка: '+r.trap.trap+'. '+r.trap.why;$('#ex').prepend(p)}
+  if(!$('#hs .card:last-child b')||$('#hs .card:last-child b').textContent!='Разбор')r.explanation.forEach(l=>{const p=document.createElement('p');p.textContent=l;$('#ex').append(p)});
+  $('#next').onclick=()=>last?done():(S.i++,ask());$('#rp').onclick=()=>reportTask(t.id,$('#rp'));$('#fb').scrollIntoView({behavior:'smooth',block:'nearest'});math()}
+
+async function done(){
+  const n=S.i+1,r=await api('finish',{total:n});head(r);
+  if(S.mode==='subject_diag'){
+    let result;try{result=await api('diagnostic/finish',{diagnostic_id:S.diagnosticId})}catch(e){return fail(e)}
+    try{head(await api('me'))}catch{}
+    V().innerHTML=`<div class="hero"><div class="flame">📊</div><div><span class="big">~${result.score}</span> / 100<br><span class="hint">Ориентир по предмету · верно ${result.correct} из ${result.answered}</span></div></div><div class="card"><b>Оценка сохранена</b><div class="hint">Она будет плавно меняться по мере следующих ответов: верные ответы поднимают показатель, ошибки немного снижают.</div></div><button class="main" id="diag-subject-home">К темам</button>`;
+    $('#diag-subject-home').onclick=()=>viewTopics(S.subject);
+    return
+  }
+  if(S.mode==='diag')return showDiagnosticResult(r,n);
+  let pending=0;
+  if(S.mode==='errors_all'){
+    try{const archive=await api('errors');pending=archive.open+archive.reinforcement_due}catch{}
+  }
+  V().innerHTML=`<div class="hero"><div class="flame">${r.bonus?'🏆':'✅'}</div><div><span class="big">${S.ok}/${n}</span><br><span class="hint">${r.bonus?'Без ошибок! +'+r.bonus+' XP':'Верных ответов'}</span></div></div>${pending?`<p class="hint">В очереди осталось ${pending} ${taskCount(pending)}. Ошибочные ответы вернутся в следующую подборку.</p>`:''}${r.badges.length?`<p>🏅 Новая награда: ${r.badges.join(', ')}</p>`:''}<button class="main" id="back">${pending?'Следующая подборка':S.back?'Назад':'На главную'}</button>`;
+  $('#back').onclick=pending?()=>start('','errors_all'):S.back||viewHome}
+
+function showDiagnosticResult(state,total){
+  const groups=new Map();
+  for(const result of S.results){
+    const key=`${result.subject}\u0000${result.topic}`;
+    const group=groups.get(key)||{subject:result.subject,topic:result.topic,correct:0,total:0};
+    group.total++;group.correct+=Number(result.correct);groups.set(key,group)
+  }
+  const rows=[...groups.values()].sort((a,b)=>a.correct/a.total-b.correct/b.total||a.topic.localeCompare(b.topic,'ru'));
+  const weak=rows.filter(row=>row.correct<row.total);
+  V().innerHTML=`<div class="hero"><div class="flame">🧭</div><div><span class="big">${S.ok}/${total}</span><br><span class="hint">Общий тест завершён · XP ${state.xp}</span></div></div>${weak.length?`<h3>Начните с этих тем</h3><div id="diag-topics"></div><p class="hint">Ошибки уже добавлены в повторение. После первой проработки они вернутся через день, затем интервалы увеличатся.</p>`:`<div class="card"><b>Хороший старт</b><div class="hint">В этом тесте ошибок нет. Выберите предмет и продолжайте практику.</div></div>`}<button class="main" id="diag-home">К предметам</button>`;
+  const list=$('#diag-topics');
+  weak.forEach(row=>{
+    const button=mk('button','card sub');
+    button.append(mk('span','topic-copy',`${NAMES[row.subject]||row.subject} · ${row.topic}`),mk('span','topic-progress',`${row.correct}/${row.total}`));
+    button.onclick=()=>start(row.subject,'',row.topic);
+    list.append(button)
+  });
+  $('#diag-home').onclick=viewHome
+}
+
+async function reportTask(id,b){try{await api('report',{task_id:id});b.textContent='Спасибо, проверим ✔';b.disabled=true}catch(e){fail(e)}}
+
+/* ---------- экзамен ---------- */
+let E;
+async function startExam(year,variant,sub){
+  let d;try{d=await api('exam/start',{subject:sub,year,variant})}catch(e){return fail(e)}
+  E={id:d.exam_id,t:d.tasks,a:d.saved||{},i:0,sub,end:d.seconds_left==null?null:Date.now()+d.seconds_left*1000,
+    pending:new Map(),saveQueue:Promise.resolve(),saveError:null,finishing:false,hints:{}};
+  stopTimer();timer=setInterval(tick,1000);examAsk()}
+function tick(){
+  if(E.end==null)return;const s=Math.max(0,Math.round((E.end-Date.now())/1000));
+  if($('#tm'))$('#tm').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  if(!s){stopTimer();tg.showAlert('Время вышло. Проверяю последние сохранённые ответы.');examFinish(true)}}
+function setExamSaveStatus(message,isError=false){
+  const status=$('#exam-status');
+  if(status){status.textContent=message;status.classList.toggle('error',isError)}
+}
+function saveA(t,v){
+  const snapshot={answer:v,encoded:JSON.stringify(v)};
+  E.a[t.id]=v;E.pending.set(t.id,snapshot);E.saveError=null;setExamSaveStatus('Сохраняю…');
+  E.saveQueue=E.saveQueue.then(async()=>{
+    const latest=E.pending.get(t.id);
+    if(!latest)return;
+    await api('exam/save',{exam_id:E.id,task_id:t.id,answer:latest.answer});
+    if(E.pending.get(t.id)?.encoded===latest.encoded)E.pending.delete(t.id);
+    if(!E.pending.size){E.saveError=null;setExamSaveStatus('Ответы сохранены')}
+  }).catch(error=>{E.saveError=error;setExamSaveStatus('Нет связи, ответ не сохранён',true)});
+  return E.saveQueue
+}
+async function flushExamSaves(){
+  await E.saveQueue;
+  for(let attempt=0;E.pending.size&&attempt<2;attempt++){
+    const pending=[...E.pending.entries()];
+    E.saveQueue=E.saveQueue.then(async()=>{
+      for(const [taskId,snapshot] of pending){
+        const latest=E.pending.get(taskId);
+        if(!latest)continue;
+        await api('exam/save',{exam_id:E.id,task_id:taskId,answer:latest.answer});
+        if(E.pending.get(taskId)?.encoded===latest.encoded)E.pending.delete(taskId);
+      }
+      E.saveError=null;
+      if(!E.pending.size)setExamSaveStatus('Ответы сохранены');
+    }).catch(error=>{E.saveError=error;setExamSaveStatus('Нет связи, ответ не сохранён',true)});
+    await E.saveQueue;
+  }
+  return E.pending.size===0
+}
+function examAsk(){
+  const t=E.t[E.i],cur=E.a[t.id],N=E.t.length;
+  V().innerHTML=`<div class="row"><button class="opt" id="ex" style="width:auto;margin:0">← Выйти</button><span class="tm" id="tm">${E.end==null?'без лимита':''}</span><span class="save-state" id="exam-status">${E.pending.size?'Сохраняю…':'Ответы сохранены'}</span></div><div class="grid" style="margin-top:10px"></div>`;
+  E.t.forEach((x,j)=>{const b=mk('button',(E.a[x.id]!=null&&E.a[x.id]!==''&&E.a[x.id].length!==0?'dn ':'')+(j==E.i?'cu':''),x.num||j+1,()=>{commit();E.i=j;examAsk()});V().querySelector('.grid').append(b)});
+  qBlock(t);
+  let get;
+  if(t.type=='choice')optsFor(t,(j,b)=>{saveA(t,j);document.querySelectorAll('#opts .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+  else get=optsFor(t,null,()=>saveA(t,get()));
+  if(t.type=='multi'&&Array.isArray(cur))document.querySelectorAll('#opts .opt').forEach((b,j)=>b.classList.toggle('sel',cur.includes(j+1)));
+  if(t.type=='choice'&&cur!=null)document.querySelectorAll('#opts .opt')[cur]?.classList.add('sel');
+  if($('#num')){$('#num').value=cur??'';$('#num').oninput=()=>saveA(t,$('#num').value)}
+  if(t.hints>0)renderExamHints(t);
+  const nav=document.createElement('div');nav.className='two';nav.style.marginTop='14px';
+  nav.append(mk('button','opt','← Назад',()=>{if(E.i>0){E.i--;examAsk()}}),E.i<N-1?mk('button','main','Дальше →',()=>{E.i++;examAsk()}):mk('button','main','Завершить',finishAsk));
+  V().append(nav);
+  $('#ex').onclick=async()=>{if(!await flushExamSaves()){tg.showAlert('Есть ответ, который ещё не удалось сохранить. Останьтесь на экране и проверьте соединение.');return}stopTimer();viewHome()};tick();math()}
+function renderExamHints(t,box=$('#exam-hints')){
+  if(!box){box=mk('div','');box.id='exam-hints';V().append(box)}
+  box.querySelector('.exam-hint-action')?.remove();
+  const shown=E.hints[t.id]||0;
+  if(shown>=t.hints)return;
+  const button=mk('button','opt exam-hint-action',`💡 Подсказка ${shown+1} из ${t.hints}`,async event=>{
+    event.currentTarget.disabled=true;
+    try{
+      const hint=await api(`hint?task_id=${encodeURIComponent(t.id)}&level=${shown+1}`);
+      E.hints[t.id]=shown+1;
+      const card=mk('div','card');card.append(mk('b','',hint.title));
+      if(hint.kind==='explain'&&hint.lines)hint.lines.forEach(line=>card.append(mk('p','',line)));
+      else card.append(mk('p','',hint.text));
+      if(hint.cross)hint.cross.forEach(index=>document.querySelectorAll('#opts .opt')[index]?.classList.add('cut'));
+      box.prepend(card);
+      renderExamHints(t,box);
+      math();
+    }catch(error){event.currentTarget.disabled=false;fail(error)}
+  });
+  box.append(button);
+}
+const commit=()=>{};
+function finishAsk(){
+  const left=E.t.filter(x=>E.a[x.id]==null||E.a[x.id]===''||E.a[x.id].length===0).length;
+  tg.showConfirm(left?`Без ответа: ${left}. Завершить экзамен?`:'Завершить экзамен?',ok=>ok&&examFinish())}
+async function examFinish(expired=false){
+  if(E.finishing)return;
+  E.finishing=true;
+  if(!expired&&!await flushExamSaves()){
+    E.finishing=false;
+    if(E.end&&E.end>Date.now())timer=setInterval(tick,1000);
+    tg.showAlert('Не получилось сохранить последний ответ. Экзамен не завершён, попробуйте ещё раз при стабильном соединении.');
+    return
+  }
+  stopTimer();let r;try{r=await api('exam/finish',{exam_id:E.id})}catch(e){E.finishing=false;if(E.end&&E.end>Date.now())timer=setInterval(tick,1000);return fail(e)}
+  head(r);showRes(r,E.sub)}
+async function openRes(id,sub){try{showRes(await api('exam/result?exam_id='+id),sub)}catch(e){fail(e)}}
+function showRes(r,sub){
+  V().innerHTML=`<div class="hero"><div class="flame">📝</div><div><span class="big">~${r.score}</span> баллов из 100<br><span class="hint">Верно ${r.correct} из ${r.total} · ${r.points} из ${r.max_points} первичных<br>Часть А: ${r.parts.A[0]}/${r.parts.A[1]} · часть В: ${r.parts.B[0]}/${r.parts.B[1]}</span></div></div>
+  <p class="hint">Балл примерный: настоящая шкала пересчёта в settings.json (exam_scale).</p>
+  ${r.wrong?`<button class="main" id="err">🔁 Работа над ошибками (${r.wrong})</button>`:'<p><b>Ошибок нет!</b></p>'}
+  <button class="opt" id="shr">📤 Поделиться результатом</button>${r.weak.length?'<h3>Где теряли баллы (нажмите, чтобы потренировать)</h3>'+r.weak.map(w=>`<button class="card"><div class="row"><span class="wt"></span><b>${w.ok}/${w.total}</b></div></button>`).join(''):''}<h3>Разбор заданий</h3><div id="its"></div><button class="opt" id="bk">К вариантам</button>`;
+  V().querySelectorAll('.wt').forEach((e,i)=>{e.textContent=r.weak[i].topic;e.closest('button').onclick=()=>start(sub,'',r.weak[i].topic,{back:()=>showRes(r,sub)})});
+  $('#shr').onclick=()=>{const t=(U.share_text||'').replace('{score}',r.score).replace('{year}',r.year).replace('{variant}',r.variant);U.bot_link?tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(U.bot_link)+'&text='+encodeURIComponent(t)):tg.showAlert('Задайте BOT_USERNAME на сервере, чтобы появилась ссылка на бота')};
+  r.items.forEach(it=>{const c=mk('div','card it'),h=mk('div','row'),l=mk('span','',it.num+' · '+it.topic),m=mk('b',it.ok?'ok-t':'bad-t',it.ok?'✓':'✗');h.append(l,m);const bd=mk('div','bd');bd.hidden=true;
+    bd.append(it.question+'\n\n'+(it.options.length?it.options.map((o,j)=>(j+1)+') '+o).join('\n')+'\n\n':'')+'Ваш ответ: '+fmt(it.type,it.given)+'\nВерно: '+fmt(it.type,it.right)+(it.explanation.length?'\n\n'+it.explanation.join('\n'):''));
+    h.onclick=()=>{bd.hidden=!bd.hidden};const rb=mk('button','opt','⚠️ Ошибка в задании?',()=>reportTask(it.id,rb));rb.style.cssText='font-size:13px;margin:8px 0 0';bd.append(rb);c.append(h,bd);$('#its').append(c)});
+  if($('#err'))$('#err').onclick=()=>start(sub,'exam_errors','',{exam_id:r.exam_id,back:()=>showRes(r,sub)});
+  $('#bk').onclick=()=>viewSb(sub);window.scrollTo(0,0)}
+
+/* ---------- ошибки ---------- */
+async function viewErrors(){
+  stopTimer();head(await api('me'));const d=await api('errors');
+  const available=d.open+d.reinforcement_due;
+  V().innerHTML=`<h3>Повторение</h3>`+(available?`<div class="card warn"><b>${d.open?`Не проработано: ${d.open}`:'Первичные ошибки проработаны ✅'}</b><div class="hint">${d.due?`${d.due} ошибок пора повторить. `:''}${d.reinforcement_due?`${d.reinforcement_due} заданий вернулись для закрепления. `:''}После первичного цикла темы возвращаются через ${(U.cfg.error_reinforcement_days||[30,60,90]).join(', ')} дней.</div></div><button class="main${d.locked?' lk':''}" id="go">${d.locked?'🔒 ':'▶ '}Короткий тест · до 10 заданий</button><h3>Темы в очереди</h3>`+d.topics.map(t=>`<div class="card topic-review"><div><b class="tp"></b><div class="hint">${t.active?`${t.active} не проработано`:''}${t.active&&t.reinforcement_due?' · ':''}${t.reinforcement_due?`${t.reinforcement_due} на закрепление`:''}</div></div><b>${taskCount(t.n)}</b></div>`).join(''):`<div class="card"><b>Очередь повторения пуста 🎉</b><div class="hint">${d.reinforcement_scheduled?`${d.reinforcement_scheduled} заданий запланированы для закрепления${d.next_reinforcement_at?`; следующий повтор ${new Date(d.next_reinforcement_at*1000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}`:''}.`: 'Ошибки будут возвращаться после следующих тренировок.'} Расписание закрепления: ${(U.cfg.error_reinforcement_days||[30,60,90]).join(', ')} дней.</div></div>`);
+  V().querySelectorAll('.tp').forEach((e,i)=>e.textContent=d.topics[i].topic);
+  if($('#go'))$('#go').onclick=()=>d.locked?viewPay():start('','errors_all')}
+
+/* ---------- оплата ---------- */
+async function viewPay(){
+  stopTimer();head(await api('me'));const c=U.cfg,A=U.access;
+  const status=A.state=='trial'?`Пробный доступ: осталось ${A.days_left} ${days(A.days_left)}`:A.state=='paid'?`Подписка активна${A.days_left?`: ещё ${A.days_left} ${days(A.days_left)}`:''}`:A.state=='expired'?'Пробный период закончился':'Доступ открыт';
+  V().innerHTML=`<div class="hero"><div class="flame">⭐</div><div><b>Подписка</b><br><span class="hint">${status}</span><br><span class="hint">${c.price_stars} ⭐ на ${c.paid_days} ${days(c.paid_days)}</span></div></div><div class="card"><b>В полной версии</b><p class="hint" style="margin:6px 0 0">✔ Варианты прошлых лет и экзамены с таймером<br>✔ Работа над ошибками до верного ответа<br>✔ Подсказки и разбор по ходу задания<br>✔ Примерный балл и уровень<br>✔ Без дневного лимита</p></div><p class="hint">Ваш прогресс и архив ошибок сохранены.</p><button class="main" id="pay">Оплатить ${c.price_stars} ⭐ · ${c.paid_days} дней</button><button class="opt" id="bk">${A.state=='expired'?'К учёбе':'Закрыть'}</button>`;
+  $('#bk').onclick=()=>viewHome().catch(()=>{});
+  $('#pay').onclick=async()=>{
+    try{const d=await api('pay',{});
+      const after=async()=>{for(let i=0;i<8;i++){head(await api('me'));if(U.access.ok)return viewHome();await new Promise(r=>setTimeout(r,1500))}tg.showAlert('Оплата ещё обрабатывается. Откройте приложение через минуту.')};
+      d.paid?after():tg.openInvoice(d.link,st=>{st=='paid'?after():st=='failed'&&tg.showAlert('Оплата не прошла')})}catch(e){tg.showAlert(e.message)}}}
+
+async function viewTop(){
+  const d=await api('top');
+  V().innerHTML='<h3>Топ недели</h3>'+(d.top.map((r,i)=>`<div class="card"><div class="row"><span>${i+1}. <span class="nm"></span>${r.me?' (вы)':''}</span><b>${r.xp} XP</b></div></div>`).join('')||'<p class="hint">Пока никого. Решите задание первым.</p>');
+  V().querySelectorAll('.nm').forEach((e,i)=>e.textContent=d.top[i].name)}
+
+async function viewProfile(){
+  head(await api('me'));
+  V().innerHTML=`<h3>Магазин</h3><button class="card sub" id="buy"><b>🛡️ Щит серии</b><span>${U.shield_price} 🪙</span></button><p class="hint">Щит сохранит серию, если пропустить один день. Лучшая серия: ${U.best_streak} ${days(U.best_streak)}.</p><h3>Награды</h3><div class="badges">`+
+  U.badges.map(b=>`<div class="card ${b.earned?'':'lock'}"><b>${b.title}</b><br><span class="hint">${b.desc}</span></div>`).join('')+'</div>';
+  $('#buy').onclick=async()=>{try{head(await api('shield',{}));viewProfile()}catch(e){tg.showAlert(e.message)}}}
+
+function showScreenError(retry,error){
+  const panel=mk('section','screen-error');
+  panel.setAttribute('role','alert');
+  if(error?.status===401){
+    document.querySelector('nav').hidden=true;
+    panel.append(mk('b','', 'Откройте тренажёр через Telegram'),mk('p','hint','Ссылка на сайт открывает только оболочку. Для входа нажмите «Начать учиться» у бота @ExamGoo_bot или кнопку «Учиться» в меню чата.'),mk('a','main','Перейти к боту',null));
+    const link=panel.querySelector('a');link.href='https://t.me/ExamGoo_bot';link.target='_blank';link.rel='noopener';
+  }else panel.append(mk('b','', 'Не удалось загрузить экран'),mk('p','hint','Проверьте соединение и повторите попытку.'),mk('button','main','Повторить',retry));
+  V().replaceChildren(panel);
+}
+async function go(t){
+  document.querySelector('nav').hidden=false;
+  document.querySelectorAll('nav button').forEach(button=>{
+    const active=button.dataset.t===t;
+    button.classList.toggle('on',active);
+    if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+  });
+  const panel=mk('section','loading-state');
+  panel.setAttribute('role','status');
+  panel.append(mk('span','spinner'),mk('span','hint','Загружаю…'));
+  V().replaceChildren(panel);
+  try{await ({home:viewHome,err:viewErrors,top:viewTop,sub:viewPay,me:viewProfile})[t]()}
+  catch(error){showScreenError(()=>go(t),error)}
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+go('home');
+</script></body></html>
