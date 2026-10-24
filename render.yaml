@@ -17,6 +17,8 @@ services:
         sync: false
       - key: ADMIN_ID
         sync: false
+      - key: WEBAPP_URL
+        sync: false          # https://ваш-сервис.onrender.com
     disk:
       name: data
       mountPath: /data

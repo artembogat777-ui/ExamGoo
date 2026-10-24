@@ -1,5 +1,6 @@
 .git
 .gitignore
+.gitattributes
 .env
 __pycache__/
 *.pyc
@@ -8,6 +9,5 @@ app.db-wal
 app.db-shm
 tests/
 deploy/
-Dockerfile
 docker-compose.yml
 render.yaml

@@ -1,5 +1,5 @@
 services:
-  web:
+  app:
     build: .
     env_file: .env
     environment:
@@ -9,19 +9,6 @@ services:
       - "8000:8000"
     volumes:
       - appdata:/data
-    restart: unless-stopped
-
-  # Бот запускается отдельно: docker compose --profile bot up -d
-  # Нужен файл bot.py в корне проекта (в присланном архиве его не было).
-  bot:
-    build: .
-    profiles: ["bot"]
-    env_file: .env
-    environment:
-      WEBAPP_URL: ${WEBAPP_URL}
-    command: ["python", "bot.py"]
-    depends_on:
-      - web
     restart: unless-stopped
 
 volumes:
